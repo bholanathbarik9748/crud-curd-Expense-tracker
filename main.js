@@ -1,109 +1,88 @@
-// variable declaration
-const date = document.getElementById('date');
-const Description = document.getElementById('description');
-const Category = document.getElementById('category');
-const amount = document.getElementById('amount');
-const tbody = document.querySelector('tbody');
-const form = document.querySelector('.add-form');
+function Save_data(event) {
+    event.preventDefault();
+    const Amount = event.target.Amount.value;
+    const Description = event.target.Description.value;
+    const category = event.target.category.value;
 
-// add Event Listener
-form.addEventListener('submit', add_data_into_table);
-tbody.addEventListener('click', deleteList);
-document.addEventListener('DOMContentLoaded', function () {
-    dataLoader();
-});
-
-// Data add in table
-function add_data_into_table(e) {
-    e.preventDefault();
-    console.log('Its Work');
-
-    const original_Data_obj = {
-        date: date.value,
-        Description: Description.value,
-        Category: Category.value,
-        amount: amount.value,
-        id: 0,
+    const obj = {
+        Amount,
+        Description,
+        category
     }
-    create_Table(original_Data_obj);
-    data_Saver(original_Data_obj);
-    form.reset();
-}
 
-// Save data
-function data_Saver(data) {
-    axios.post("https://crudcrud.com/api/f354a3a768214dd8ba44a2ab18f1c987/Expense_Tracker", data)
-        .then(res => {
-            show_User(res.data);
+    axios.post("https://crudcrud.com/api/649bad67aa32404da3788a0aae30e788/Expense_Tracker", obj)
+        .then((res) => {
             console.log(res)
         })
-        .catch(err => console.log(err));
+        .catch((err) => {
+            console.log(err)
+        })
+    Show_data(obj)
 }
 
-// Load data
-function dataLoader() {
-    axios.get("https://crudcrud.com/api/f354a3a768214dd8ba44a2ab18f1c987/Expense_Tracker")
-        .then(res => {
-            for(var it = 0;it < res.data.length;it++){
-                create_Table(res.data[it]);
-                console.log(res.data[it]);
+window.addEventListener("DOMContentLoaded", () => {
+    axios.get("https://crudcrud.com/api/649bad67aa32404da3788a0aae30e788/Expense_Tracker")
+        .then((res) => {
+            console.log(res)
+            for (var i = 0; i < res.data.length; i++) {
+                Show_data(res.data[i])
             }
-            console.log(res)
         })
-        .catch(err => console.log(err));
+        .catch((err) => {
+            console.log(err)
+        })
+})
+
+function Show_data(user) {
+    const parentNode = document.getElementById("ListOfUsers");
+    console.log(user);
+    const childHTML = `<li id=${user._id}>Amount:${user.Amount}-Description:${user.Description}-category:${user.category}<button onclick=deleteUser('${user._id}')>Delete User</button class="btn btn-danger"><button onclick=EditUserDetails('${user.Amount}','${user.Description}','${user.category}','${user._id}') class="edt" class="btn btn-danger"> Edit User </button></li>`;
+    parentNode.innerHTML = parentNode.innerHTML + childHTML;
 }
 
-// Delete Row
-function deleteList(data) {
-    let table_row;
-    table_row = data.target.closest('tr');
-    console.log(table_row);
-    const id = data.target.parentElement.parentElement._id;
-    console.log(id);
-    axios.delete(`https://crudcrud.com/api/f354a3a768214dd8ba44a2ab18f1c987/Expense_Tracker/${id}`)
-        .then(res => {
-            console.log(res);
-            table_row.remove();
+
+function deleteUser(userId) {
+    axios.delete(`https://crudcrud.com/api/649bad67aa32404da3788a0aae30e788/Expense_Tracker/${userId}`)
+        .then((res) => {
+            removeUserFromScreen(userId)
         })
-        .catch(err => console.log(err));
+        .catch((err) => {
+            console.log(err)
+        })
 }
 
-// create Row 
-function create_Table(data) {
-    const expenseRow = document.createElement('tr');
-    expenseRow.id = data.id;
+function EditUserDetails(userId) {
+axios.get(`https://crudcrud.com/api/649bad67aa32404da3788a0aae30e788/Expense_Tracker/${userId}`)
+console.log("inside EditUserDetails", userId);
+deleteUser(userId);
+console.log(Amount, Description, category, userId);
 
-    const dateTd = document.createElement('td');
-    dateTd.classList = 'date-row';
-    dateTd.textContent = data.date;
+}
 
-    const descriptionTd = document.createElement('td');
-    descriptionTd.classList = 'description-row';
-    descriptionTd.textContent = data.Description;
+itemlist.addEventListener("click", editfun);
 
-    const categoryTd = document.createElement('td');
-    categoryTd.classList = 'category-row';
-    categoryTd.textContent = data.Category;
+function editfun(e) {
+    if (e.target.classList.contains("edt")) {
+        var li = e.target.parentElement;
+        //  console.log(li)
+        let amt = li.childNodes[1].textContent; 
+        let dis = li.childNodes[2].textContent;
+        let cat = li.childNodes[4].textContent;
+        // console.log(amt,dis,cat)
+        let v1 = document.getElementById("inp1");
+        let v2 = document.getElementById("inp2");
+        let v3 = document.getElementById("inp3");
+        v1.value = amt;
+        v2.value = dis;
+        v3.value = cat;
+        datadelte(dis);
+        itemlist.removeChild(li);
+    }
+}
 
-    const amountTd = document.createElement('td');
-    amountTd.classList = 'amount-row';
-    amountTd.textContent = data.amount;
+function removeUserFromScreen(userId) {
+    const parentNode = document.getElementById("ListOfUsers")
+    const ChildNodetoBeDeleted = document.getElementById(userId)
+    parentNode.removeChild(ChildNodetoBeDeleted)
 
-    const idTd = document.createElement('td');
-    idTd.classList = 'id-row';
-    idTd.textContent = data.id;
-
-
-    const deleteTd = document.createElement('td');
-    const deleteIcon = document.createElement('i');
-    deleteIcon.classList = 'fas fa-minus-circle delete-icon';
-
-    expenseRow.appendChild(dateTd);
-    expenseRow.appendChild(descriptionTd);
-    expenseRow.appendChild(categoryTd);
-    expenseRow.appendChild(amountTd);
-    expenseRow.appendChild(deleteTd);
-    expenseRow.appendChild(idTd);
-    deleteTd.appendChild(deleteIcon);
-    tbody.appendChild(expenseRow);
 }
